@@ -2,6 +2,12 @@
 
 Public repo name: `AI-job-email-alerts`
 
+If you do not understand something, you can ask Claude, Codex, or whatever other vibe-coding tool you use to help you set this up in less than 10 minutes.
+
+I hate looking for jobs, so I automated it.
+
+This is a simple and free way to create your own system that emails you about jobs or internships.
+
 This project helps you find jobs, score them, save them to Google Sheets, and email yourself a simple digest.
 
 ## What It Does
