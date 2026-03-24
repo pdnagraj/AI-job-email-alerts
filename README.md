@@ -144,7 +144,7 @@ You can change:
 1. Create a new repo called `AI-job-email-alerts`.
 2. Push this code there.
 3. Add your GitHub Actions secrets.
-4. Make the repo public.
+4. Keep it private or make it public if you want to share it.
 
 More setup help is in `docs/cloud_setup.md`.
 
