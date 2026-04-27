@@ -12,6 +12,7 @@ jobs:
     env:
       TZ: America/New_York
       GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+      GOOGLE_SHEETS_URL: ${{ secrets.GOOGLE_SHEETS_URL }}
       RECRUITING_BOT_EMAIL_TO: ${{ secrets.RECRUITING_BOT_EMAIL_TO }}
       RECRUITING_BOT_EMAIL_FROM: ${{ secrets.RECRUITING_BOT_EMAIL_FROM }}
       RECRUITING_BOT_SMTP_HOST: ${{ secrets.RECRUITING_BOT_SMTP_HOST }}
@@ -38,4 +39,8 @@ jobs:
 
       - name: Send yesterday's digest
         run: |
-          python bot.py --send-sheet-digest --digest-yesterday
+          python bot.py \
+            --send-sheet-digest \
+            --digest-yesterday \
+            --sheets-url "$GOOGLE_SHEETS_URL" \
+            --sheets-tab "Email Jobs"

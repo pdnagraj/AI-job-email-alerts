@@ -41,19 +41,19 @@ This project:
 Collect jobs:
 
 ```bash
-python3 bot.py --max-jobs 12 --hours-old 24
+python3 bot.py --max-jobs 12 --max-jobs-per-day 8 --hours-old 24 --sheets-url "YOUR_GOOGLE_SHEET_URL" --sheets-tab "Email Jobs"
 ```
 
 Send today's digest:
 
 ```bash
-python3 bot.py --send-sheet-digest
+python3 bot.py --send-sheet-digest --sheets-url "YOUR_GOOGLE_SHEET_URL" --sheets-tab "Email Jobs"
 ```
 
 Send yesterday's digest:
 
 ```bash
-python3 bot.py --send-sheet-digest --digest-yesterday
+python3 bot.py --send-sheet-digest --digest-yesterday --sheets-url "YOUR_GOOGLE_SHEET_URL" --sheets-tab "Email Jobs"
 ```
 
 Send a test email:

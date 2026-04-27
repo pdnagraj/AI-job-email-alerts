@@ -98,6 +98,8 @@ cp .env.example .env
 Then put your real values inside `.env`:
 
 ```bash
+GOOGLE_SHEETS_URL="YOUR_GOOGLE_SHEET_URL"
+GOOGLE_SHEET_TAB="Email Jobs"
 RECRUITING_BOT_EMAIL_TO="you@example.com"
 RECRUITING_BOT_EMAIL_FROM="you@example.com"
 RECRUITING_BOT_SMTP_HOST="smtp.gmail.com"
@@ -113,13 +115,13 @@ OLLAMA_API_KEY="your-key"
 Search for jobs and save them:
 
 ```bash
-python3 bot.py --max-jobs 12 --hours-old 24 --sheets-url "YOUR_GOOGLE_SHEET_URL"
+python3 bot.py --max-jobs 12 --max-jobs-per-day 8 --hours-old 24 --sheets-url "YOUR_GOOGLE_SHEET_URL"
 ```
 
 Send a digest email:
 
 ```bash
-python3 bot.py --send-sheet-digest --sheets-url "YOUR_GOOGLE_SHEET_URL"
+python3 bot.py --send-sheet-digest --sheets-url "YOUR_GOOGLE_SHEET_URL" --sheets-tab "Email Jobs"
 ```
 
 Send a test email:
@@ -131,6 +133,8 @@ python3 bot.py --send-test-email --email-to you@example.com
 ## Make It Yours
 
 If you want different jobs, edit `app/config.py`.
+
+New runs default to `8` jobs per day. You can lower or raise that with `--max-jobs-per-day` or by changing `MAX_JOBS_PER_DAY`.
 
 You can change:
 

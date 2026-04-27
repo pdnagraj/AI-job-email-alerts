@@ -29,6 +29,7 @@ from .config import (
     TARGET_LOCATIONS,
 )
 from .google_sheets import append_contacted_job_from_values_if_new, get_jobs_for_today
+from .job_identity import build_job_identity_signatures
 from .ollama_fit import ollama_is_configured, split_jobs_with_ollama
 
 try:
@@ -258,7 +259,7 @@ def search_jobspy_jobs(
     target_locations = locations or TARGET_LOCATIONS
 
     collected_jobs: list[dict[str, str]] = []
-    seen_keys: set[tuple[str, str, str]] = set()
+    seen_keys: set[tuple[str, ...]] = set()
 
     for search_term in query_terms:
         for location in target_locations:
@@ -293,15 +294,16 @@ def search_jobspy_jobs(
                     continue
                 normalized["fit_score"] = str(fit_score)
 
-                key = (
-                    normalized["title"].lower(),
-                    normalized["company"].lower(),
-                    normalized["link"].lower(),
+                job_signatures = build_job_identity_signatures(
+                    company_name=normalized["company"],
+                    role_name=normalized["title"],
+                    location=normalized["location"],
+                    job_application_link=normalized["link"],
                 )
-                if key in seen_keys:
+                if any(signature in seen_keys for signature in job_signatures):
                     continue
 
-                seen_keys.add(key)
+                seen_keys.update(job_signatures)
                 collected_jobs.append(normalized)
                 log(
                     f"Extracted JobSpy job: {normalized['title']} at {normalized['company']} "
@@ -340,12 +342,29 @@ def save_jobspy_jobs_to_google_sheets(
     credentials_path: str,
     spreadsheet_ref: str,
     worksheet_name: str = "Jobs",
+    max_jobs_per_day: int | None = None,
 ) -> None:
     if not job_list:
         log("No JobSpy jobs to save to Google Sheets.")
         return
 
+    remaining_daily_slots = None
+    if max_jobs_per_day is not None:
+        remaining_daily_slots = get_remaining_daily_slots(
+            credentials_path=credentials_path,
+            spreadsheet_ref=spreadsheet_ref,
+            worksheet_name=worksheet_name,
+            max_jobs_per_day=max_jobs_per_day,
+        )
+        if remaining_daily_slots <= 0:
+            log(f"Daily cap already reached for {worksheet_name}. No new rows will be added.")
+            return
+
     for job in job_list:
+        if remaining_daily_slots is not None and remaining_daily_slots <= 0:
+            log(f"Stopped saving jobs because the daily cap for {worksheet_name} has been reached.")
+            break
+
         try:
             was_added = append_contacted_job_from_values_if_new(
                 credentials_path=credentials_path,
@@ -358,6 +377,8 @@ def save_jobspy_jobs_to_google_sheets(
             )
             if was_added:
                 log(f"Saved JobSpy job to Google Sheets: {job['title']} at {job['company']}")
+                if remaining_daily_slots is not None:
+                    remaining_daily_slots -= 1
             else:
                 log(f"Skipped duplicate JobSpy job in Google Sheets: {job['title']} at {job['company']}")
         except Exception as exc:
@@ -371,6 +392,7 @@ def save_partitioned_jobspy_jobs_to_google_sheets(
     spreadsheet_ref: str,
     approved_worksheet_name: str,
     archived_worksheet_name: str,
+    max_jobs_per_day: int | None = None,
 ) -> None:
     if approved_jobs:
         save_jobspy_jobs_to_google_sheets(
@@ -378,6 +400,7 @@ def save_partitioned_jobspy_jobs_to_google_sheets(
             credentials_path=credentials_path,
             spreadsheet_ref=spreadsheet_ref,
             worksheet_name=approved_worksheet_name,
+            max_jobs_per_day=max_jobs_per_day,
         )
 
     if archived_jobs:
@@ -428,10 +451,13 @@ def run_jobspy_job_search(
             max_jobs_per_day=max_jobs_per_day,
         )
         if remaining_daily_slots <= 0:
-            log(
-                f"Daily cap reached for {sheets_tab_name}. "
-                f"Skipping scrape because today already has {max_jobs_per_day} jobs."
-            )
+            if max_jobs_per_day <= 0:
+                log(f"Daily cap for {sheets_tab_name} is set to 0. Skipping scrape and sheet updates.")
+            else:
+                log(
+                    f"Daily cap reached for {sheets_tab_name}. "
+                    f"Skipping scrape because today already has {max_jobs_per_day} jobs."
+                )
             return []
 
     jobs = search_jobspy_jobs(
@@ -466,6 +492,7 @@ def run_jobspy_job_search(
             spreadsheet_ref=sheets_spreadsheet_ref,
             approved_worksheet_name=sheets_tab_name,
             archived_worksheet_name=archived_sheets_tab_name,
+            max_jobs_per_day=max_jobs_per_day,
         )
 
     return approved_jobs

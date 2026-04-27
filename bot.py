@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 
 try:
     from dotenv import load_dotenv
@@ -48,17 +49,17 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--sheets-url",
-        default=DEFAULT_SHEETS_URL,
+        default=os.getenv("GOOGLE_SHEETS_URL", os.getenv("GOOGLE_SHEET_NAME", DEFAULT_SHEETS_URL)),
         help="Google Sheets URL or spreadsheet ID for saving found jobs",
     )
     parser.add_argument(
         "--sheets-tab",
-        default=DEFAULT_SHEETS_TAB,
+        default=os.getenv("GOOGLE_SHEET_TAB", DEFAULT_SHEETS_TAB),
         help=f"Worksheet/tab name to append to. Default: {DEFAULT_SHEETS_TAB}",
     )
     parser.add_argument(
         "--archive-tab",
-        default=ARCHIVED_SHEETS_TAB,
+        default=os.getenv("GOOGLE_ARCHIVE_SHEET_TAB", ARCHIVED_SHEETS_TAB),
         help=f"Worksheet/tab name for Ollama-rejected jobs. Default: {ARCHIVED_SHEETS_TAB}",
     )
     parser.add_argument(

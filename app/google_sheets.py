@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from .config import LOCAL_TIMEZONE
+from .job_identity import job_rows_match
 
 try:
     import gspread
@@ -49,7 +50,7 @@ class ContactedJobRow:
     date_applied: str = ""
 
     def to_row(self) -> list[str]:
-        formatted_date = self.date_applied or date.today().strftime("%m/%d/%Y")
+        formatted_date = self.date_applied or get_current_date_label()
         return [
             self.company_name,
             formatted_date,
@@ -75,6 +76,13 @@ def extract_spreadsheet_id(sheet_ref: str) -> str:
         return match.group(1)
 
     return sheet_ref.strip()
+
+
+def get_current_date_label(timezone_name: str = LOCAL_TIMEZONE) -> str:
+    try:
+        return datetime.now(ZoneInfo(timezone_name)).strftime("%m/%d/%Y")
+    except Exception:
+        return date.today().strftime("%m/%d/%Y")
 
 
 # Build an authenticated Sheets client from a service account JSON key.
@@ -128,6 +136,7 @@ def has_matching_job_row(
     worksheet,
     company_name: str,
     role_name: str,
+    location: str = "",
     job_application_link: str = "",
 ) -> bool:
     records = worksheet.get_all_values()
@@ -135,15 +144,20 @@ def has_matching_job_row(
     for row in records[1:]:
         row_company = row[0].strip() if len(row) > 0 else ""
         row_role = row[2].strip() if len(row) > 2 else ""
+        row_location = row[3].strip() if len(row) > 3 else ""
         row_link = row[4].strip() if len(row) > 4 else ""
 
-        if row_company != company_name or row_role != role_name:
-            continue
-
-        if job_application_link and row_link and row_link != job_application_link:
-            continue
-
-        return True
+        if job_rows_match(
+            company_name=company_name,
+            role_name=role_name,
+            location=location,
+            job_application_link=job_application_link,
+            other_company_name=row_company,
+            other_role_name=row_role,
+            other_location=row_location,
+            other_job_application_link=row_link,
+        ):
+            return True
 
     return False
 
@@ -161,6 +175,7 @@ def append_contacted_job_if_new(
         worksheet,
         company_name=row.company_name,
         role_name=row.role_name,
+        location=row.location,
         job_application_link=row.job_application_link,
     ):
         return False
@@ -217,12 +232,7 @@ def get_jobs_for_today(
     worksheet_name: str,
     timezone_name: str = LOCAL_TIMEZONE,
 ) -> tuple[str, list[dict[str, str]]]:
-    today_label = date.today().strftime("%m/%d/%Y")
-    try:
-        today_label = datetime.now(ZoneInfo(timezone_name)).strftime("%m/%d/%Y")
-    except Exception:
-        pass
-
+    today_label = get_current_date_label(timezone_name)
     return today_label, get_jobs_for_applied_date(
         credentials_path=credentials_path,
         spreadsheet_ref=spreadsheet_ref,
@@ -238,11 +248,10 @@ def get_jobs_for_day_offset(
     days_offset: int,
     timezone_name: str = LOCAL_TIMEZONE,
 ) -> tuple[str, list[dict[str, str]]]:
-    target_date = date.today()
     try:
         target_date = datetime.now(ZoneInfo(timezone_name)).date()
     except Exception:
-        pass
+        target_date = date.today()
 
     target_label = (target_date + timedelta(days=days_offset)).strftime("%m/%d/%Y")
     return target_label, get_jobs_for_applied_date(

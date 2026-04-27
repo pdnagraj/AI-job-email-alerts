@@ -80,7 +80,7 @@ TARGET_LOCATIONS = [
     "New York, New York, United States",
     "San Francisco, California, United States",
 ]
-MAX_JOBS_PER_DAY = 10
+MAX_JOBS_PER_DAY = 8
 ALLOWED_TITLE_PATTERNS = [
     "associate product manager",
     "product manager",

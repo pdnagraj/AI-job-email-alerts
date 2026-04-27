@@ -16,6 +16,7 @@ Open your repo, then go to `Settings -> Secrets and variables -> Actions`.
 Add these secrets:
 
 - `GOOGLE_CREDENTIALS_JSON`
+- `GOOGLE_SHEETS_URL`
 - `RECRUITING_BOT_EMAIL_TO`
 - `RECRUITING_BOT_EMAIL_FROM`
 - `RECRUITING_BOT_SMTP_HOST`
@@ -44,19 +45,19 @@ If you use Gmail:
 Collect jobs:
 
 ```bash
-python3 bot.py --max-jobs 12 --hours-old 24
+python3 bot.py --max-jobs 12 --max-jobs-per-day 8 --hours-old 24 --sheets-url "YOUR_GOOGLE_SHEET_URL" --sheets-tab "Email Jobs"
 ```
 
 Send a digest for today:
 
 ```bash
-python3 bot.py --send-sheet-digest
+python3 bot.py --send-sheet-digest --sheets-url "YOUR_GOOGLE_SHEET_URL" --sheets-tab "Email Jobs"
 ```
 
 Send a digest for yesterday:
 
 ```bash
-python3 bot.py --send-sheet-digest --digest-yesterday
+python3 bot.py --send-sheet-digest --digest-yesterday --sheets-url "YOUR_GOOGLE_SHEET_URL" --sheets-tab "Email Jobs"
 ```
 
 Send a plain test email:
