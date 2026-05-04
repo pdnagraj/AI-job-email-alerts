@@ -264,18 +264,22 @@ def search_jobspy_jobs(
     for search_term in query_terms:
         for location in target_locations:
             log(f"Searching JobSpy for '{search_term}' in {location} on {', '.join(sites)}")
-            dataframe = scrape_jobs(
-                site_name=sites,
-                search_term=search_term,
-                google_search_term=f"{search_term} jobs near {location} since yesterday",
-                location=location,
-                results_wanted=results_per_query,
-                hours_old=hours_old,
-                country_indeed=country_indeed,
-                description_format="markdown",
-                linkedin_fetch_description="linkedin" in sites,
-                verbose=0,
-            )
+            try:
+                dataframe = scrape_jobs(
+                    site_name=sites,
+                    search_term=search_term,
+                    google_search_term=f"{search_term} jobs near {location} since yesterday",
+                    location=location,
+                    results_wanted=results_per_query,
+                    hours_old=hours_old,
+                    country_indeed=country_indeed,
+                    description_format="markdown",
+                    linkedin_fetch_description="linkedin" in sites,
+                    verbose=0,
+                )
+            except Exception as exc:
+                log(f"JobSpy scrape failed for '{search_term}' in {location}: {exc}")
+                continue
 
             for raw_job in dataframe_to_records(dataframe):
                 if not is_allowed_title(raw_job.get("title")):
@@ -374,6 +378,8 @@ def save_jobspy_jobs_to_google_sheets(
                 role_name=job["title"],
                 location=job["location"],
                 job_application_link=job["link"],
+                ai_fit_score=job.get("ollama_fit_score", ""),
+                ai_reason=job.get("ollama_reason", ""),
             )
             if was_added:
                 log(f"Saved JobSpy job to Google Sheets: {job['title']} at {job['company']}")

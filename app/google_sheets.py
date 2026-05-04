@@ -34,6 +34,8 @@ DEFAULT_HEADERS = [
     "LinkedIn Link 1",
     "LinkedIn Link 2",
     "LinkedIn Link 3",
+    "AI Fit Score",
+    "AI Reason",
 ]
 
 
@@ -48,6 +50,8 @@ class ContactedJobRow:
     linkedin_link_3: str = ""
     job_application_link: str = ""
     date_applied: str = ""
+    ai_fit_score: str = ""
+    ai_reason: str = ""
 
     def to_row(self) -> list[str]:
         formatted_date = self.date_applied or get_current_date_label()
@@ -60,6 +64,8 @@ class ContactedJobRow:
             self.linkedin_link_1,
             self.linkedin_link_2,
             self.linkedin_link_3,
+            self.ai_fit_score,
+            self.ai_reason,
         ]
 
 
@@ -117,7 +123,7 @@ def ensure_headers(worksheet, headers: list[str] | None = None) -> None:
     if any(cell.strip() for cell in existing_headers):
         return
 
-    worksheet.update("A1:H1", [expected_headers])
+    worksheet.update("A1:J1", [expected_headers])
 
 
 # Append one structured job-contact row to the sheet.
@@ -316,6 +322,8 @@ def append_contacted_job_from_values(
     linkedin_link_3: str = "",
     job_application_link: str = "",
     date_applied: str = "",
+    ai_fit_score: str = "",
+    ai_reason: str = "",
 ) -> None:
     row = ContactedJobRow(
         company_name=company_name,
@@ -326,6 +334,8 @@ def append_contacted_job_from_values(
         linkedin_link_2=linkedin_link_2,
         linkedin_link_3=linkedin_link_3,
         job_application_link=job_application_link,
+        ai_fit_score=ai_fit_score,
+        ai_reason=ai_reason,
     )
     append_contacted_job(credentials_path, spreadsheet_ref, worksheet_name, row)
 
@@ -342,6 +352,8 @@ def append_contacted_job_from_values_if_new(
     linkedin_link_3: str = "",
     job_application_link: str = "",
     date_applied: str = "",
+    ai_fit_score: str = "",
+    ai_reason: str = "",
 ) -> bool:
     row = ContactedJobRow(
         company_name=company_name,
@@ -352,6 +364,8 @@ def append_contacted_job_from_values_if_new(
         linkedin_link_2=linkedin_link_2,
         linkedin_link_3=linkedin_link_3,
         job_application_link=job_application_link,
+        ai_fit_score=ai_fit_score,
+        ai_reason=ai_reason,
     )
     return append_contacted_job_if_new(credentials_path, spreadsheet_ref, worksheet_name, row)
 

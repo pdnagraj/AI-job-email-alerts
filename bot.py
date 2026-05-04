@@ -127,6 +127,8 @@ def main() -> None:
     if load_dotenv is not None:
         load_dotenv()
 
+    print(f"DIAGNOSTIC: OPENAI_API_KEY is {'SET' if os.getenv('OPENAI_API_KEY') else 'MISSING'}")
+
     args = parse_args()
 
     if args.send_test_email:
